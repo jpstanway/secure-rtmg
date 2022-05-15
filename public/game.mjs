@@ -29,6 +29,22 @@ context.fillText("Rank: 2 / 2", canvas.width - PADDING, PADDING);
 context.strokeStyle = "white";
 context.lineWidth = 2;
 context.beginPath();
-context.moveTo(0, 60);
+context.moveTo(0, 70);
 context.lineTo(canvas.width, 70);
 context.stroke();
+
+// spawn character
+const spawnPlayer = () => {
+  const id = String(Math.floor(Math.random() * 100));
+  const x = Math.floor(Math.random() * (canvas.width + 1));
+  const y = Math.floor(Math.random() * (canvas.width - 70) + 70);
+  const score = 0;
+  const player = new Player({ x, y, score, id });
+
+  // draw new player
+  context.beginPath();
+  context.arc(x, y, 20, 0, Math.PI * 2, true);
+  context.stroke();
+};
+
+spawnPlayer();

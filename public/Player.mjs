@@ -1,19 +1,19 @@
 class Player {
-  constructor({x, y, score, id}) {
+  id = "";
+  currentPosition = [0, 0];
+  score = 0;
 
+  constructor({ x, y, score, id }) {
+    this.id = id;
+    this.currentPosition = [x, y];
+    this.score = score;
   }
 
-  movePlayer(dir, speed) {
+  movePlayer(dir, speed) {}
 
-  }
+  collision(item) {}
 
-  collision(item) {
-
-  }
-
-  calculateRank(arr) {
-
-  }
+  calculateRank(arr) {}
 }
 
 export default Player;
