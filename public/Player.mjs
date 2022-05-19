@@ -1,28 +1,29 @@
 class Player {
   id = "";
-  currentPosition = [0, 0];
+  x = 0;
+  y = 0;
   score = 0;
 
   constructor({ x, y, score, id }) {
     this.id = id;
-    this.currentPosition = [x, y];
+    this.x = x;
+    this.y = y;
     this.score = score;
   }
 
   movePlayer(dir, speed) {
     if (dir) {
-      const [x, y] = this.currentPosition;
       if (dir === "up") {
-        this.currentPosition = [x, y - 1];
+        this.y -= speed;
       }
       if (dir === "down") {
-        this.currentPosition = [x, y + 1];
+        this.y += speed;
       }
       if (dir === "left") {
-        this.currentPosition = [x - 1, y];
+        this.x -= speed;
       }
       if (dir === "right") {
-        this.currentPosition = [x + 1, y];
+        this.x += speed;
       }
     }
   }
@@ -31,8 +32,12 @@ class Player {
 
   calculateRank(arr) {}
 
-  position() {
-    return this.currentPosition;
+  getX() {
+    return this.x;
+  }
+
+  getY() {
+    return this.y;
   }
 }
 
