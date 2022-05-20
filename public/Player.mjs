@@ -31,14 +31,6 @@ class Player {
   collision(item) {}
 
   calculateRank(arr) {}
-
-  getX() {
-    return this.x;
-  }
-
-  getY() {
-    return this.y;
-  }
 }
 
 export default Player;
