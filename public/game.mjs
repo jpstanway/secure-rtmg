@@ -1,5 +1,6 @@
 import Player from "./Player.mjs";
 import Collectible from "./Collectible.mjs";
+import { generateCrypto } from "./utils.mjs";
 
 const PADDING = 40;
 const HEADER_HEIGHT = 70;
@@ -25,23 +26,18 @@ const maxY = canvas.height - MINER_SIZE;
 const minY = HEADER_HEIGHT + MINER_SIZE;
 const x = Math.floor(Math.random() * (maxX - minX) + minX);
 const y = Math.floor(Math.random() * (maxY - minY) + minY);
-const cryptoId = `CR${String(Math.floor(Math.random() * 100))}`;
 const cryptoMaxX = canvas.width - CRYPTO_SIZE;
 const cryptoMinX = CRYPTO_SIZE;
 const cryptoMaxY = canvas.height - CRYPTO_SIZE;
 const cryptoMinY = HEADER_HEIGHT + CRYPTO_SIZE;
-const cryptoX = Math.floor(
-  Math.random() * (cryptoMaxX - cryptoMinX) + cryptoMinX
-);
-const cryptoY = Math.floor(
-  Math.random() * (cryptoMaxY - cryptoMinY) + cryptoMinY
-);
 let dir = null;
 let minerCount = 1;
 let score = 1;
-let value = 1;
+let collected = false;
 let miner = new Player({ x, y, score, id });
-let crypto = new Collectible({ x: cryptoX, y: cryptoY, value, id: cryptoId });
+let crypto = new Collectible({
+  ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
+});
 
 // event handlers
 const movementHandler = (e) => {
@@ -51,6 +47,38 @@ const movementHandler = (e) => {
 
 const stopHandler = (e) => {
   dir = null;
+};
+
+const collisionHandler = () => {
+  if (!collected) {
+    const touchRight =
+      miner.x + MINER_SIZE > crypto.x - CRYPTO_SIZE &&
+      miner.x + MINER_SIZE < crypto.x + CRYPTO_SIZE;
+    const touchLeft =
+      miner.x - MINER_SIZE > crypto.x - CRYPTO_SIZE &&
+      miner.x - MINER_SIZE < crypto.x + CRYPTO_SIZE;
+    const touchTop =
+      miner.y + MINER_SIZE > crypto.y - CRYPTO_SIZE &&
+      miner.y + MINER_SIZE < crypto.y + CRYPTO_SIZE;
+    const touchBottom =
+      miner.y - MINER_SIZE > crypto.y - CRYPTO_SIZE &&
+      miner.y - MINER_SIZE < crypto.y + CRYPTO_SIZE;
+    const touchQuadrant =
+      (touchRight || touchLeft) && (touchTop || touchBottom);
+    const touchHorizontal =
+      (touchRight || touchLeft) &&
+      crypto.y > miner.y - MINER_SIZE &&
+      crypto.y < miner.y + MINER_SIZE;
+    const touchVertical =
+      (touchTop || touchBottom) &&
+      crypto.x > miner.x - MINER_SIZE &&
+      crypto.x < miner.x + MINER_SIZE;
+
+    if (touchQuadrant || touchHorizontal || touchVertical) {
+      collected = true;
+      score++;
+    }
+  }
 };
 
 document.addEventListener("keydown", movementHandler, false);
@@ -102,11 +130,18 @@ const renderMiner = () => {
 };
 
 const renderCrypto = () => {
-  context.beginPath();
-  context.fillStyle = CRYPTO_COLOR;
-  context.arc(crypto.x, crypto.y, CRYPTO_SIZE, 0, Math.PI * 2, true);
-  context.fill();
-  context.closePath();
+  if (!collected) {
+    context.beginPath();
+    context.fillStyle = CRYPTO_COLOR;
+    context.arc(crypto.x, crypto.y, CRYPTO_SIZE, 0, Math.PI * 2, true);
+    context.fill();
+    context.closePath();
+  } else {
+    crypto = new Collectible({
+      ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
+    });
+    collected = false;
+  }
 };
 
 // main rendering function
@@ -115,6 +150,7 @@ const renderer = () => {
   renderStage();
   renderMiner();
   renderCrypto();
+  collisionHandler();
 
   requestAnimationFrame(renderer);
 };
