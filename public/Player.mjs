@@ -28,9 +28,15 @@ class Player {
     }
   }
 
-  collision(item) {}
+  collision(item) {
+    this.score += item.value;
+  }
 
-  calculateRank(arr) {}
+  calculateRank(arr) {
+    arr.sort((a, b) => a.score - b.score);
+    const rank = arr.findIndex((m) => m.id === this.id) + 1;
+    return rank;
+  }
 }
 
 export default Player;

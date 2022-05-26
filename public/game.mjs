@@ -6,8 +6,9 @@ const PADDING = 40;
 const HEADER_HEIGHT = 70;
 const MINER_SIZE = 20;
 const MINER_COLOR = "green";
+const HELMET_COLOR = "yellow";
 const CRYPTO_SIZE = 10;
-const CRYPTO_COLOR = "yellow";
+const CRYPTO_COLOR = "orange";
 const DIRECTIONS = {
   87: "up", // w
   65: "left", // a
@@ -30,14 +31,17 @@ const cryptoMaxX = canvas.width - CRYPTO_SIZE;
 const cryptoMinX = CRYPTO_SIZE;
 const cryptoMaxY = canvas.height - CRYPTO_SIZE;
 const cryptoMinY = HEADER_HEIGHT + CRYPTO_SIZE;
+const miners = [];
 let dir = null;
-let minerCount = 1;
-let score = 1;
 let collected = false;
-let miner = new Player({ x, y, score, id });
+let miner = new Player({ x, y, score: 0, id });
 let crypto = new Collectible({
   ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
 });
+
+miners.push(miner);
+
+let rank = miner.calculateRank(miners);
 
 // event handlers
 const movementHandler = (e) => {
@@ -76,7 +80,8 @@ const collisionHandler = () => {
 
     if (touchQuadrant || touchHorizontal || touchVertical) {
       collected = true;
-      score++;
+      miner.collision(crypto);
+      rank = miner.calculateRank(miners);
     }
   }
 };
@@ -115,16 +120,31 @@ const renderStage = () => {
   context.font = "18px sans-serif";
   context.textAlign = "right";
   context.fillText(
-    `Rank: ${score} / ${minerCount}`,
+    `Rank: ${rank} / ${miners.length}`,
     canvas.width - PADDING,
     PADDING
   );
 };
 
 const renderMiner = () => {
+  // body
   context.beginPath();
   context.fillStyle = MINER_COLOR;
   context.arc(miner.x, miner.y, MINER_SIZE, 0, Math.PI * 2, true);
+  context.fill();
+  context.closePath();
+
+  // helmet
+  context.beginPath();
+  context.strokeStyle = HELMET_COLOR;
+  context.moveTo(miner.x - MINER_SIZE - 5, miner.y);
+  context.lineTo(miner.x + MINER_SIZE + 5, miner.y);
+  context.stroke();
+  context.closePath();
+
+  context.beginPath();
+  context.fillStyle = HELMET_COLOR;
+  context.arc(miner.x, miner.y, MINER_SIZE, 0, Math.PI, true);
   context.fill();
   context.closePath();
 };
@@ -135,6 +155,30 @@ const renderCrypto = () => {
     context.fillStyle = CRYPTO_COLOR;
     context.arc(crypto.x, crypto.y, CRYPTO_SIZE, 0, Math.PI * 2, true);
     context.fill();
+    context.closePath();
+
+    // vertical lines
+    context.beginPath();
+    context.strokeStyle = CRYPTO_COLOR;
+
+    if (crypto.value === 1) {
+      context.moveTo(crypto.x, crypto.y - CRYPTO_SIZE - 5);
+      context.lineTo(crypto.x, crypto.y + CRYPTO_SIZE + 5);
+    } else if (crypto.value === 2) {
+      context.moveTo(crypto.x + 2, crypto.y - CRYPTO_SIZE - 3);
+      context.lineTo(crypto.x + 2, crypto.y + CRYPTO_SIZE + 3);
+      context.moveTo(crypto.x - 2, crypto.y - CRYPTO_SIZE - 3);
+      context.lineTo(crypto.x - 2, crypto.y + CRYPTO_SIZE + 3);
+    } else {
+      context.moveTo(crypto.x, crypto.y - CRYPTO_SIZE - 5);
+      context.lineTo(crypto.x, crypto.y + CRYPTO_SIZE + 5);
+      context.moveTo(crypto.x + 5, crypto.y - CRYPTO_SIZE - 3);
+      context.lineTo(crypto.x + 5, crypto.y + CRYPTO_SIZE + 3);
+      context.moveTo(crypto.x - 5, crypto.y - CRYPTO_SIZE - 3);
+      context.lineTo(crypto.x - 5, crypto.y + CRYPTO_SIZE + 3);
+    }
+
+    context.stroke();
     context.closePath();
   } else {
     crypto = new Collectible({
