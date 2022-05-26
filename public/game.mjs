@@ -32,7 +32,7 @@ const cryptoMinX = CRYPTO_SIZE;
 const cryptoMaxY = canvas.height - CRYPTO_SIZE;
 const cryptoMinY = HEADER_HEIGHT + CRYPTO_SIZE;
 const miners = [];
-let dir = null;
+let dir = new Set();
 let collected = false;
 let miner = new Player({ x, y, score: 0, id });
 let crypto = new Collectible({
@@ -45,12 +45,12 @@ let rank = miner.calculateRank(miners);
 
 // event handlers
 const movementHandler = (e) => {
-  dir = DIRECTIONS[e.which];
+  dir.add(DIRECTIONS[e.which]);
   miner.movePlayer(dir, 7);
 };
 
 const stopHandler = (e) => {
-  dir = null;
+  dir = new Set();
 };
 
 const collisionHandler = () => {

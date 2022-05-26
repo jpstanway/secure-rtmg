@@ -12,18 +12,36 @@ class Player {
   }
 
   movePlayer(dir, speed) {
-    if (dir) {
-      if (dir === "up") {
+    if (dir.size > 0) {
+      const cmd = Array.from(dir).join(" ");
+
+      if (cmd === "up") {
         this.y -= speed;
       }
-      if (dir === "down") {
+      if (cmd === "down") {
         this.y += speed;
       }
-      if (dir === "left") {
+      if (cmd === "left") {
         this.x -= speed;
       }
-      if (dir === "right") {
+      if (cmd === "right") {
         this.x += speed;
+      }
+      if (cmd === "up right" || cmd === "right up") {
+        this.y -= speed;
+        this.x += speed;
+      }
+      if (cmd === "up left" || cmd === "left up") {
+        this.y -= speed;
+        this.x -= speed;
+      }
+      if (cmd === "down right" || cmd === "right down") {
+        this.y += speed;
+        this.x += speed;
+      }
+      if (cmd === "down left" || cmd === "left down") {
+        this.y += speed;
+        this.x -= speed;
       }
     }
   }
