@@ -15,6 +15,7 @@ const DIRECTIONS = {
   83: "down", // s
   68: "right", // d
 };
+const BASE_SPEED = 7;
 
 // const socket = io();
 const canvas = document.getElementById("game-window");
@@ -46,7 +47,22 @@ let rank = miner.calculateRank(miners);
 // event handlers
 const movementHandler = (e) => {
   dir.add(DIRECTIONS[e.which]);
-  miner.movePlayer(dir, 7);
+
+  let speed;
+
+  // wall collision
+  if (
+    (dir.has("up") && miner.y - MINER_SIZE - BASE_SPEED < HEADER_HEIGHT) ||
+    (dir.has("down") && miner.y + MINER_SIZE + BASE_SPEED > canvas.height) ||
+    (dir.has("left") && miner.x - MINER_SIZE - BASE_SPEED < 0) ||
+    (dir.has("right") && miner.x + MINER_SIZE + BASE_SPEED > canvas.width)
+  ) {
+    speed = 0;
+  } else {
+    speed = BASE_SPEED;
+  }
+
+  miner.movePlayer(dir, speed);
 };
 
 const stopHandler = (e) => {
