@@ -17,11 +17,10 @@ const DIRECTIONS = {
 };
 const BASE_SPEED = 7;
 
-// const socket = io();
+const socket = io();
 const canvas = document.getElementById("game-window");
 const context = canvas.getContext("2d");
 
-const id = String(Math.floor(Math.random() * 100));
 const maxX = canvas.width - MINER_SIZE;
 const minX = MINER_SIZE;
 const maxY = canvas.height - MINER_SIZE;
@@ -35,14 +34,25 @@ const cryptoMinY = HEADER_HEIGHT + CRYPTO_SIZE;
 const miners = [];
 let dir = new Set();
 let collected = false;
-let miner = new Player({ x, y, score: 0, id });
+// let miner = new Player({ x, y, score: 0, id });
+let miner = null;
+let rank = null;
 let crypto = new Collectible({
   ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
 });
 
 miners.push(miner);
 
-let rank = miner.calculateRank(miners);
+// socket events
+// socket.on("connect", () => {
+//   socket.emit("custom event", 10, "test");
+// });
+socket.on("player-connected", (id) => {
+  const score = 0;
+  miner = new Player({ x, y, score, id });
+  // send player data to server
+  socket.emit("player-update", { x, y, score, id });
+});
 
 // event handlers
 const movementHandler = (e) => {
@@ -70,7 +80,7 @@ const stopHandler = (e) => {
 };
 
 const collisionHandler = () => {
-  if (!collected) {
+  if (miner && !collected) {
     const touchRight =
       miner.x + MINER_SIZE > crypto.x - CRYPTO_SIZE &&
       miner.x + MINER_SIZE < crypto.x + CRYPTO_SIZE;
@@ -143,26 +153,28 @@ const renderStage = () => {
 };
 
 const renderMiner = () => {
-  // body
-  context.beginPath();
-  context.fillStyle = MINER_COLOR;
-  context.arc(miner.x, miner.y, MINER_SIZE, 0, Math.PI * 2, true);
-  context.fill();
-  context.closePath();
+  if (miner) {
+    // body
+    context.beginPath();
+    context.fillStyle = MINER_COLOR;
+    context.arc(miner.x, miner.y, MINER_SIZE, 0, Math.PI * 2, true);
+    context.fill();
+    context.closePath();
 
-  // helmet
-  context.beginPath();
-  context.strokeStyle = HELMET_COLOR;
-  context.moveTo(miner.x - MINER_SIZE - 5, miner.y);
-  context.lineTo(miner.x + MINER_SIZE + 5, miner.y);
-  context.stroke();
-  context.closePath();
+    // helmet
+    context.beginPath();
+    context.strokeStyle = HELMET_COLOR;
+    context.moveTo(miner.x - MINER_SIZE - 5, miner.y);
+    context.lineTo(miner.x + MINER_SIZE + 5, miner.y);
+    context.stroke();
+    context.closePath();
 
-  context.beginPath();
-  context.fillStyle = HELMET_COLOR;
-  context.arc(miner.x, miner.y, MINER_SIZE, 0, Math.PI, true);
-  context.fill();
-  context.closePath();
+    context.beginPath();
+    context.fillStyle = HELMET_COLOR;
+    context.arc(miner.x, miner.y, MINER_SIZE, 0, Math.PI, true);
+    context.fill();
+    context.closePath();
+  }
 };
 
 const renderCrypto = () => {
