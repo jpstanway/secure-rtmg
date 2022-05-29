@@ -31,27 +31,35 @@ const cryptoMaxX = canvas.width - CRYPTO_SIZE;
 const cryptoMinX = CRYPTO_SIZE;
 const cryptoMaxY = canvas.height - CRYPTO_SIZE;
 const cryptoMinY = HEADER_HEIGHT + CRYPTO_SIZE;
-const miners = [];
+let miners = [];
 let dir = new Set();
 let collected = false;
-// let miner = new Player({ x, y, score: 0, id });
 let miner = null;
-let rank = null;
-let crypto = new Collectible({
-  ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
-});
-
-miners.push(miner);
+let rank = 0;
+let crypto = null;
 
 // socket events
-// socket.on("connect", () => {
-//   socket.emit("custom event", 10, "test");
-// });
+const sendCrypto = (stats) => socket.emit("crypto-update", stats);
 socket.on("player-connected", (id) => {
   const score = 0;
   miner = new Player({ x, y, score, id });
   // send player data to server
   socket.emit("player-update", { x, y, score, id });
+});
+
+socket.on("generate-initial-crypto", () => {
+  crypto = new Collectible({
+    ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
+  });
+  const { x, y, id, value } = crypto;
+  sendCrypto({ x, y, id, value });
+});
+
+socket.on("players-stats", (players) => {
+  miners = players;
+  if (miner) {
+    rank = miner.calculateRank(players);
+  }
 });
 
 // event handlers
@@ -73,6 +81,9 @@ const movementHandler = (e) => {
   }
 
   miner.movePlayer(dir, speed);
+
+  // send new coords to server
+  socket.emit("player-update", { x: miner.x, y: miner.y, id: miner.id });
 };
 
 const stopHandler = (e) => {
@@ -80,7 +91,7 @@ const stopHandler = (e) => {
 };
 
 const collisionHandler = () => {
-  if (miner && !collected) {
+  if (miner && crypto && !collected) {
     const touchRight =
       miner.x + MINER_SIZE > crypto.x - CRYPTO_SIZE &&
       miner.x + MINER_SIZE < crypto.x + CRYPTO_SIZE;
@@ -107,7 +118,9 @@ const collisionHandler = () => {
     if (touchQuadrant || touchHorizontal || touchVertical) {
       collected = true;
       miner.collision(crypto);
-      rank = miner.calculateRank(miners);
+
+      // update server with new score
+      socket.emit("player-update", { score: miner.score, id: miner.id });
     }
   }
 };
@@ -178,41 +191,45 @@ const renderMiner = () => {
 };
 
 const renderCrypto = () => {
-  if (!collected) {
-    context.beginPath();
-    context.fillStyle = CRYPTO_COLOR;
-    context.arc(crypto.x, crypto.y, CRYPTO_SIZE, 0, Math.PI * 2, true);
-    context.fill();
-    context.closePath();
+  if (crypto) {
+    if (!collected) {
+      context.beginPath();
+      context.fillStyle = CRYPTO_COLOR;
+      context.arc(crypto.x, crypto.y, CRYPTO_SIZE, 0, Math.PI * 2, true);
+      context.fill();
+      context.closePath();
 
-    // vertical lines
-    context.beginPath();
-    context.strokeStyle = CRYPTO_COLOR;
+      // vertical lines
+      context.beginPath();
+      context.strokeStyle = CRYPTO_COLOR;
 
-    if (crypto.value === 1) {
-      context.moveTo(crypto.x, crypto.y - CRYPTO_SIZE - 5);
-      context.lineTo(crypto.x, crypto.y + CRYPTO_SIZE + 5);
-    } else if (crypto.value === 2) {
-      context.moveTo(crypto.x + 2, crypto.y - CRYPTO_SIZE - 3);
-      context.lineTo(crypto.x + 2, crypto.y + CRYPTO_SIZE + 3);
-      context.moveTo(crypto.x - 2, crypto.y - CRYPTO_SIZE - 3);
-      context.lineTo(crypto.x - 2, crypto.y + CRYPTO_SIZE + 3);
+      if (crypto.value === 1) {
+        context.moveTo(crypto.x, crypto.y - CRYPTO_SIZE - 5);
+        context.lineTo(crypto.x, crypto.y + CRYPTO_SIZE + 5);
+      } else if (crypto.value === 2) {
+        context.moveTo(crypto.x + 2, crypto.y - CRYPTO_SIZE - 3);
+        context.lineTo(crypto.x + 2, crypto.y + CRYPTO_SIZE + 3);
+        context.moveTo(crypto.x - 2, crypto.y - CRYPTO_SIZE - 3);
+        context.lineTo(crypto.x - 2, crypto.y + CRYPTO_SIZE + 3);
+      } else {
+        context.moveTo(crypto.x, crypto.y - CRYPTO_SIZE - 5);
+        context.lineTo(crypto.x, crypto.y + CRYPTO_SIZE + 5);
+        context.moveTo(crypto.x + 5, crypto.y - CRYPTO_SIZE - 3);
+        context.lineTo(crypto.x + 5, crypto.y + CRYPTO_SIZE + 3);
+        context.moveTo(crypto.x - 5, crypto.y - CRYPTO_SIZE - 3);
+        context.lineTo(crypto.x - 5, crypto.y + CRYPTO_SIZE + 3);
+      }
+
+      context.stroke();
+      context.closePath();
     } else {
-      context.moveTo(crypto.x, crypto.y - CRYPTO_SIZE - 5);
-      context.lineTo(crypto.x, crypto.y + CRYPTO_SIZE + 5);
-      context.moveTo(crypto.x + 5, crypto.y - CRYPTO_SIZE - 3);
-      context.lineTo(crypto.x + 5, crypto.y + CRYPTO_SIZE + 3);
-      context.moveTo(crypto.x - 5, crypto.y - CRYPTO_SIZE - 3);
-      context.lineTo(crypto.x - 5, crypto.y + CRYPTO_SIZE + 3);
+      crypto = new Collectible({
+        ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
+      });
+      collected = false;
+      const { x, y, id, value } = crypto;
+      sendCrypto({ x, y, id, value });
     }
-
-    context.stroke();
-    context.closePath();
-  } else {
-    crypto = new Collectible({
-      ...generateCrypto(cryptoMaxX, cryptoMinX, cryptoMaxY, cryptoMinY),
-    });
-    collected = false;
   }
 };
 

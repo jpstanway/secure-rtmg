@@ -52,13 +52,22 @@ const server = app.listen(portNum, () => {
 
 // socket config
 const io = socket(server);
+const collectible = null;
 let players = [];
 
 io.on("connection", (socket) => {
-  console.log("a user has connected", socket.id);
+  // generate initial collectible
+  if (!collectible) {
+    io.emit("generate-initial-crypto");
+  }
+
   players.push({ id: socket.id });
 
-  console.log("players in session:", players.length);
+  const sendPlayers = () => {
+    io.emit("players-stats", players);
+  };
+
+  sendPlayers();
 
   io.emit("player-connected", socket.id);
 
@@ -71,12 +80,18 @@ io.on("connection", (socket) => {
     };
 
     players = [...players.filter((n) => n.id !== player.id), player];
-    console.log("player updated", players);
+
+    if (stats.score) {
+      sendPlayers();
+    }
+  });
+
+  socket.on("crypto-update", (stats) => {
+    crypto = stats;
   });
 
   socket.on("disconnect", () => {
     players = players.filter((p) => p.id !== socket.id);
-    console.log("player disconnected. Players left: ", players.length);
   });
 });
 
