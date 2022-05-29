@@ -4,11 +4,21 @@ const bodyParser = require("body-parser");
 const expect = require("chai");
 const socket = require("socket.io");
 const cors = require("cors");
+const helmet = require("helmet");
 
 const fccTestingRoutes = require("./routes/fcctesting.js");
 const runner = require("./test-runner.js");
 
 const app = express();
+
+app.use(helmet.noSniff());
+app.use(helmet.noCache());
+app.use(helmet.xssFilter());
+
+app.use((req, res, next) => {
+  res.setHeader("X-Powered-By", "PHP 7.4.3");
+  next();
+});
 
 app.use("/public", express.static(process.cwd() + "/public"));
 app.use("/assets", express.static(process.cwd() + "/assets"));
@@ -55,7 +65,7 @@ const io = socket(server);
 const collectible = null;
 let players = [];
 
-io.on("connection", (socket) => {
+io.sockets.on("connection", (socket) => {
   // generate initial collectible
   if (!collectible) {
     io.emit("generate-initial-crypto");

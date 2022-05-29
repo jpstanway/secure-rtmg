@@ -35,7 +35,7 @@ let miners = [];
 let dir = new Set();
 let collected = false;
 let miner = null;
-let rank = 0;
+let rank = "Rank: N/A";
 let crypto = null;
 
 // socket events
@@ -80,7 +80,10 @@ const movementHandler = (e) => {
     speed = BASE_SPEED;
   }
 
-  miner.movePlayer(dir, speed);
+  if (dir.size > 0) {
+    const cmd = Array.from(dir).join(" ");
+    miner.movePlayer(cmd, speed);
+  }
 
   // send new coords to server
   socket.emit("player-update", { x: miner.x, y: miner.y, id: miner.id });
@@ -158,11 +161,7 @@ const renderStage = () => {
   context.fillStyle = "white";
   context.font = "18px sans-serif";
   context.textAlign = "right";
-  context.fillText(
-    `Rank: ${rank} / ${miners.length}`,
-    canvas.width - PADDING,
-    PADDING
-  );
+  context.fillText(rank, canvas.width - PADDING, PADDING);
 };
 
 const renderMiner = () => {

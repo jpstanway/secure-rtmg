@@ -1,9 +1,4 @@
 class Collectible {
-  id = "";
-  x = 0;
-  y = 0;
-  value = 0;
-
   constructor({ x, y, value, id }) {
     this.x = x;
     this.y = y;

@@ -1,9 +1,4 @@
 class Player {
-  id = "";
-  x = 0;
-  y = 0;
-  score = 0;
-
   constructor({ x, y, score, id }) {
     this.id = id;
     this.x = x;
@@ -12,48 +7,46 @@ class Player {
   }
 
   movePlayer(dir, speed) {
-    if (dir.size > 0) {
-      const cmd = Array.from(dir).join(" ");
-
-      if (cmd === "up") {
-        this.y -= speed;
-      }
-      if (cmd === "down") {
-        this.y += speed;
-      }
-      if (cmd === "left") {
-        this.x -= speed;
-      }
-      if (cmd === "right") {
-        this.x += speed;
-      }
-      if (cmd === "up right" || cmd === "right up") {
-        this.y -= speed;
-        this.x += speed;
-      }
-      if (cmd === "up left" || cmd === "left up") {
-        this.y -= speed;
-        this.x -= speed;
-      }
-      if (cmd === "down right" || cmd === "right down") {
-        this.y += speed;
-        this.x += speed;
-      }
-      if (cmd === "down left" || cmd === "left down") {
-        this.y += speed;
-        this.x -= speed;
-      }
+    if (dir === "up") {
+      this.y -= speed;
+    }
+    if (dir === "down") {
+      this.y += speed;
+    }
+    if (dir === "left") {
+      this.x -= speed;
+    }
+    if (dir === "right") {
+      this.x += speed;
+    }
+    if (dir === "up right" || dir === "right up") {
+      this.y -= speed;
+      this.x += speed;
+    }
+    if (dir === "up left" || dir === "left up") {
+      this.y -= speed;
+      this.x -= speed;
+    }
+    if (dir === "down right" || dir === "right down") {
+      this.y += speed;
+      this.x += speed;
+    }
+    if (dir === "down left" || dir === "left down") {
+      this.y += speed;
+      this.x -= speed;
     }
   }
 
   collision(item) {
     this.score += item.value;
+    return true;
   }
 
   calculateRank(arr) {
-    arr.sort((a, b) => a.score - b.score);
+    arr.sort((a, b) => b.score - a.score);
     const rank = arr.findIndex((m) => m.id === this.id) + 1;
-    return rank;
+
+    return `Rank: ${rank} / ${arr.length}`;
   }
 }
 
